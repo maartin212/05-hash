@@ -32,3 +32,5 @@
  const char *hash_iter_ver_actual(const hash_iter_t *iter);
  bool hash_iter_al_final(const hash_iter_t *iter);
  void hash_iter_destruir(hash_iter_t* iter);
+
+ #endif
