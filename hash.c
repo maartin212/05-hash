@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #define TAM_INICIAL 20
+#define FACTOR_REDIMENSION 75
 
 /* ******************************************************************
  *                DEFINICION DE LOS TIPOS DE DATOS
@@ -68,6 +69,11 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
+	// if(hash->cantidad * 100 / hash->capacidad > FACTOR_REDIMENSION){
+	// 	hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * 2 * hash->capacidad);
+	// 	if(!aux) return 0;
+	// 	hash->tabla = aux;
+	// }
 	unsigned int posicion;
 	posicion = buscar_clave(hash, clave);
 	if(!posicion){
