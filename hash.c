@@ -81,24 +81,30 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	hash->tabla[posicion].estado = OCUPADO;
 	return 1;
 }
+
 void *hash_borrar(hash_t *hash, const char *clave){
 	unsigned int posicion = buscar_clave(hash, clave);
 	if(!posicion) return NULL;
 	void* dato = hash->tabla[posicion].valor;
 	hash->tabla[posicion].estado = BORRADO;
+	hash->hash_destruir_dato_t(hash->tabla[posicion].dato);
 	return dato;
 }
+
 void *hash_obtener(const hash_t *hash, const char *clave){
 	unsigned int posicion = buscar_clave(hash, clave);
 	if(!posicion) return NULL;
 	return hash->tabla[posicion].valor;
 }
+
 bool hash_pertenece(const hash_t *hash, const char *clave){
 	return buscar_clave(hash, clave) != NULL;
 }
+
 size_t hash_cantidad(const hash_t *hash){
  return hash->cantidad;
 }
+
 void hash_destruir(hash_t *hash){
 
 }
@@ -112,6 +118,7 @@ unsigned int buscar_clave(const hash_t* hash, const char* clave){
 			posicion = 0
 		}
 	}
+	return NULL;
 }
 
 /* ******************************************************************
