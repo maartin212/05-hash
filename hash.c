@@ -10,21 +10,21 @@
 
 typedef enum estado{
 	VACIO,OCUPADO,BORRADO
-}estado_t;
+} estado_t;
 
 
 typedef struct hash_campo{
     char *clave;
     void *valor;
-    estado_t estado; 
+    estado_t estado;
 } hash_campo_t;
 
  struct hash{
- 	size_t cantidad;                  
-    size_t largo;                     
-    size_t carga;                     
-    hash_campo_t *tabla; //hash->tabla[i].clave 
-    hash_destruir_dato_t destruir_dato; 
+ 	size_t cantidad;
+    size_t largo;
+    size_t carga;
+    hash_campo_t *tabla; //hash->tabla[i].clave
+    hash_destruir_dato_t destruir_dato;
  };
 
 
@@ -106,5 +106,5 @@ typedef struct hash_campo{
 
  }
  void hash_iter_destruir(hash_iter_t* iter){
-   
+
  }
