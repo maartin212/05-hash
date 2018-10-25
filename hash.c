@@ -61,16 +61,16 @@ bool redimensionar(hash_t * hash,size_t nuevo_tam){
 	return true;
 }
 
-unsigned int buscar_clave(const hash_t* hash, const char* clave){
-	unsigned int posicion = stringToHash(clave, hash->capacidad);
+int buscar_clave(const hash_t* hash, const char* clave){
+	int posicion = stringToHash(clave, hash->capacidad);
 	while(hash->tabla[posicion].estado == OCUPADO){
 		if(hash->tabla[posicion].clave == clave) return posicion;
 		posicion++;
 		if(posicion > hash->capacidad){
-			posicion = 0
+			posicion = 0;
 		}
 	}
-	return NULL;
+	return -1;
 }
 
 /* ******************************************************************
@@ -131,7 +131,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	if(!posicion) return NULL;
 	void* dato = hash->tabla[posicion].valor;
 	hash->tabla[posicion].estado = BORRADO;
-	hash->hash_destruir_dato_t(hash->tabla[posicion].valor);
+	hash->destruir_dato(hash->tabla[posicion].valor);
 	hash->cantidad--;
 	return dato;
 }
@@ -143,7 +143,7 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 }
 
 bool hash_pertenece(const hash_t *hash, const char *clave){
-	return buscar_clave(hash, clave) != NULL;
+	return buscar_clave(hash, clave) != -1;
 }
 
 size_t hash_cantidad(const hash_t *hash){
@@ -151,11 +151,11 @@ size_t hash_cantidad(const hash_t *hash){
 }
 
 void hash_destruir(hash_t *hash){
-	if(!hash) return NULL;
+	if(!hash) return;
 	unsigned int posicion = 0;
 	while (posicion < hash->capacidad) {
 		if(hash->tabla[posicion].estado == OCUPADO){
-			hash->hash_destruir_dato_t(hash->tabla[posicion].valor);
+			hash->destruir_dato(hash->tabla[posicion].valor);
 		}
 	}
 	free(hash->tabla);
@@ -169,22 +169,23 @@ void hash_destruir(hash_t *hash){
 * *****************************************************************/
 
 hash_iter_t *hash_iter_crear(const hash_t *hash){
-	hash_iter_t * iterador = malloc(sizeof(hash_iter_t));
-	if (!iterador) return NULL;
+	hash_iter_t * iter = malloc(sizeof(hash_iter_t));
+	if (!iter) return NULL;
 
-	iterador->hash = (hash_t*) hash;
-	iterador->posicion = 0;
-	while(hash->tabla[iterador->posicion].estado != OCUPADO){
-		iterador->posicion++;
+	iter->hash = (hash_t*) hash;
+	iter->posicion = 0;
+	while(hash->tabla[iter->posicion].estado != OCUPADO){
+		iter->posicion++;
+		if(iter->posicion == iter->hash->capacidad) return NULL;
 	}
-	return iterador;
+	return iter;
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter){
 	iter->posicion++;
 	while(iter->hash->tabla[iter->posicion].estado != OCUPADO){
 		iter->posicion++;
-		if(iter->posicion == iter->hash->capacidad - 1) return false;
+		if(iter->posicion == iter->hash->capacidad) return false;
 	}
 	return true;
 }
