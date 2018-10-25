@@ -169,33 +169,33 @@ void hash_destruir(hash_t *hash){
 * *****************************************************************/
 
 hash_iter_t *hash_iter_crear(const hash_t *hash){
-	hash_iter_t * iter = malloc(sizeof(hash_iter_t));
-	if(!iter) return NULL;
+	hash_iter_t * iterador = malloc(sizeof(hash_iter_t));
+	if (!iterador) return NULL;
 
-	iter->posicion = 0;
-	iter->hash = (hash_t*)hash;
-	return iter;
+	iterador->hash = (hash_t*) hash;
+	iterador->posicion = 0;
+	while(hash->tabla[iterador->posicion].estado != OCUPADO){
+		iterador->posicion++;
+	}
+	return iterador;
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter){
-	if (iter->posicion < iter->hash->capacidad-1){
+	iter->posicion++;
+	while(iter->hash->tabla[iter->posicion].estado != OCUPADO){
 		iter->posicion++;
-		return true;
+		if(iter->posicion == iter->hash->capacidad - 1) return false;
 	}
-	return false;
+	return true;
 }
-
 
 const char *hash_iter_ver_actual(const hash_iter_t *iter){
 	size_t posicion = iter->posicion;
-	return(iter->hash->tabla[posicion].clave);
+	return (iter->hash->tabla[posicion].clave);
 }
 
 bool hash_iter_al_final(const hash_iter_t *iter){
-	size_t posicion = iter->posicion;
-	if (posicion + 1 == iter->hash->capacidad){
-		return true;
-	}
+	if (iter->posicion == iter->hash->capacidad - 1) return true;
 	return false;
 }
 
