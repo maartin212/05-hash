@@ -97,26 +97,31 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
-	if ( hash->carga * 100/hash->capacidad > FACTOR_AGRANDAMIENTO){
-		if(!redimensionar(hash,2)) return false;
+	if(hash->carga * 100 / hash->capacidad > FACTOR_AGRANDAMIENTO){
+		//VER COMO SACAR LOS BORRADOS
+		hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * 2 * hash->capacidad);
+		if(!aux) return 0;
+		hash->tabla = aux;
+		hash->capacidad *= 2;
 	}
-	size_t posicion = stringToHash(clave,hash->capacidad);
-	if (strcmp(hash->tabla[posicion].clave,clave)){ // En caso de que la clave ya estaba guardada.
-		hash->tabla[posicion].valor = dato;
-		return true;
-	}
-	else if (hash->tabla[posicion].estado == OCUPADO){ // Colisiones
-		while(hash->tabla[posicion].estado == OCUPADO){
-			posicion++;
-		}
-	}
-	hash->tabla[posicion].estado = OCUPADO;
+	unsigned int posicion;
+	posicion = buscar_clave(hash, clave);
+	if(!posicion){
+ 		posicion = stringToHash(clave, hash->capacidad);
+ 		while(hash->tabla[posicion].estado == OCUPADO){
+			if(hash->tabla[posicion].clave == clave){
+				hash->tabla[posicion].valor = dato;
+				return 1;
+			}
+ 			posicion++;
+ 		}
+ 	}
+	hash->tabla[posicion].clave = clave;
 	hash->tabla[posicion].valor = dato;
-	strcpy(hash->tabla[posicion].clave,clave);
+	hash->tabla[posicion].estado = OCUPADO;
 	hash->cantidad++;
 	hash->carga++;
-
-	return true;
+	return 1;
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
@@ -161,8 +166,6 @@ void hash_destruir(hash_t *hash){
 	free(hash->tabla);
 	free(hash);
 }
-
-
 
 /* ******************************************************************
 *                    PRIMITIVAS DEL ITERADOR

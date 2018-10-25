@@ -76,8 +76,28 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 	return hash;
 }
 
-bool hash_guardar(hash_t *hash, const char *clave, void *dato);
+bool hash_guardar(hash_t *hash, const char *clave, void *dato){
+	if ( hash->carga * 100/hash->capacidad > FACTOR_AGRANDAMIENTO){
+		if(!redimensionar(hash,2)) return false;
+	}
+	size_t posicion = stringToHash(clave,hash->capacidad);
+	if (strcmp(hash->tabla[posicion].clave,clave)){ // En caso de que la clave ya estaba guardada.
+		hash->tabla[posicion].valor = dato;
+		return true;
+	}
+	else if (hash->tabla[posicion].estado == OCUPADO){ // Colisiones
+		while(hash->tabla[posicion].estado == OCUPADO){
+			posicion++;
+		}
+	}
+	hash->tabla[posicion].estado = OCUPADO;
+	hash->tabla[posicion].valor = dato;
+	strcpy(hash->tabla[posicion].clave,clave);
+	hash->cantidad++;
+	hash->carga++;
 
+	return true;
+}
 
 void *hash_borrar(hash_t *hash, const char *clave);
 
