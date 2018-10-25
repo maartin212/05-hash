@@ -3,7 +3,8 @@
 #include <stdio.h>
 
 #define TAM_INICIAL 20
-#define FACTOR_REDIMENSION 75
+#define FACTOR_AGRANDAMIENTO 75
+#define FACTOR_REDUCCION 25
 
 /* ******************************************************************
  *                DEFINICION DE LOS TIPOS DE DATOS
@@ -22,7 +23,7 @@ typedef struct hash_campo{
 
 struct hash{
 	size_t cantidad;
-	size_t largo;
+	size_t capacidad;
 	size_t carga;
 	hash_campo_t *tabla; //hash->tabla[i].clave
 	hash_destruir_dato_t destruir_dato;
@@ -57,7 +58,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 
 	hash->cantidad = 0;
 	hash->destruir_dato = destruir_dato;
-	hash->largo = TAM_INICIAL;
+	hash->capacidad = TAM_INICIAL;
 	hash->carga = 0;
 
 	hash->tabla = malloc(sizeof(hash_campo_t) * TAM_INICIAL);
@@ -69,11 +70,13 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
-	// if(hash->cantidad * 100 / hash->capacidad > FACTOR_REDIMENSION){
-	// 	hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * 2 * hash->capacidad);
-	// 	if(!aux) return 0;
-	// 	hash->tabla = aux;
-	// }
+	if(hash->carga * 100 / hash->capacidad > FACTOR_AGRANDAMIENTO){
+		//VER COMO SACAR LOS BORRADOS
+		hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * 2 * hash->capacidad);
+		if(!aux) return 0;
+		hash->tabla = aux;
+		hash->capacidad *= 2;
+	}
 	unsigned int posicion;
 	posicion = buscar_clave(hash, clave);
 	if(!posicion){
@@ -85,15 +88,25 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	hash->tabla[posicion].clave = clave;
 	hash->tabla[posicion].valor = dato;
 	hash->tabla[posicion].estado = OCUPADO;
+	hash->cantidad++;
+	hash->carga++;
 	return 1;
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
+	if(hash->carga * 100 / hash->capacidad < FACTOR_REDUCCION){
+		//VER COMO SACAR LOS BORRADOS
+		hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) / 2 * hash->capacidad);
+		if(!aux) return NULL;
+		hash->tabla = aux;
+		hash->capacidad /= 2;
+	}
 	unsigned int posicion = buscar_clave(hash, clave);
 	if(!posicion) return NULL;
 	void* dato = hash->tabla[posicion].valor;
 	hash->tabla[posicion].estado = BORRADO;
 	hash->hash_destruir_dato_t(hash->tabla[posicion].dato);
+	hash->cantidad--;
 	return dato;
 }
 
@@ -112,7 +125,15 @@ size_t hash_cantidad(const hash_t *hash){
 }
 
 void hash_destruir(hash_t *hash){
-
+	if(!hash) return NULL;
+	unsigned int posicion = 0;
+	while (posicion < hash->capacidad) {
+		if(hash->tabla[posicion].estado == OCUPADO){
+			hash->hash_destruir_dato_t(hash->tabla[posicion].valor);
+		}
+	}
+	free(hash->tabla);
+	free(hash);
 }
 
 unsigned int buscar_clave(const hash_t* hash, const char* clave){
