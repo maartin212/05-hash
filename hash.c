@@ -161,7 +161,7 @@ void hash_destruir(hash_t *hash){
 	if(!hash) return;
 	size_t posicion = 0;
 	while (posicion < hash->capacidad) {
-		if(hash->tabla[posicion].estado == OCUPADO){
+		if(hash->tabla[posicion].estado == OCUPADO && hash->destruir_dato){
 			hash->destruir_dato(hash->tabla[posicion].valor);
 		}
 		posicion++;
@@ -176,36 +176,36 @@ void hash_destruir(hash_t *hash){
 
 hash_iter_t *hash_iter_crear(const hash_t *hash){
 	hash_iter_t * iter = malloc(sizeof(hash_iter_t));
-	if (!iter) return NULL;
+	if (iter == NULL) return NULL;
 
 	iter->hash = (hash_t*) hash;
 	iter->posicion = 0;
 	while(hash->tabla[iter->posicion].estado != OCUPADO){
 		iter->posicion++;
-		if(iter->posicion == iter->hash->capacidad){
-			iter->posicion = 0;
+		if(iter->posicion == iter->hash->capacidad)
 			break;
-		}
 	}
 	return iter;
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter){
-	iter->posicion++;
-	while(iter->hash->tabla[iter->posicion].estado != OCUPADO){
+	if (iter->posicion == iter->hash->capacidad) return false;
+
+	do{
 		iter->posicion++;
-		if(iter->posicion == iter->hash->capacidad) return false;
-	}
+	}while(iter->posicion < iter->hash->capacidad && iter->hash->tabla[iter->posicion].estado != OCUPADO);
+	
 	return true;
 }
 
 const char *hash_iter_ver_actual(const hash_iter_t *iter){
+	if (iter->posicion == iter->hash->capacidad) return NULL;
 	size_t posicion = iter->posicion;
 	return (iter->hash->tabla[posicion].clave);
 }
 
 bool hash_iter_al_final(const hash_iter_t *iter){
-	if (iter->posicion == iter->hash->capacidad - 1) return true;
+	if (iter->posicion == iter->hash->capacidad) return true;
 	return false;
 }
 
