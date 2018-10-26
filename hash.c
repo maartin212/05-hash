@@ -42,29 +42,29 @@ https://stackoverflow.com/questions/14409466/simple-hash-functions
 * *****************************************************************/
 
 unsigned int stringToHash(const char *word, unsigned int hashTableSize){
-	unsigned int counter, hashAddress =0;
-	for (counter =0; word[counter]!='\0'; counter++){
+	unsigned int counter, hashAddress = 0;
+	for (counter = 0; word[counter]!='\0'; counter++){
   		hashAddress = hashAddress*word[counter] + word[counter] + counter;
 	}
 	return (hashAddress%hashTableSize);
 }
 
-bool redimensionar(hash_t * hash,size_t nuevo_tam){
-	hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * (nuevo_tam*hash->capacidad));
-	if (!aux) return false;
-
-	hash->tabla = aux;
-	for (int i = hash->capacidad; i < nuevo_tam*hash->capacidad ; i++){
-		hash->tabla[i].estado = VACIO;
-	}
-	hash->capacidad *= nuevo_tam;
-	return true;
-}
+// bool redimensionar(hash_t * hash,size_t nuevo_tam){
+// 	hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * (nuevo_tam*hash->capacidad));
+// 	if (!aux) return false;
+//
+// 	hash->tabla = aux;
+// 	for (int i = hash->capacidad; i < nuevo_tam*hash->capacidad ; i++){
+// 		hash->tabla[i].estado = VACIO;
+// 	}
+// 	hash->capacidad *= nuevo_tam;
+// 	return true;
+// }
 
 int buscar_clave(const hash_t* hash, const char* clave){
-	int posicion = stringToHash(clave, hash->capacidad);
+	unsigned int posicion = stringToHash(clave, (unsigned int)hash->capacidad);
 	while(hash->tabla[posicion].estado == OCUPADO){
-		if(hash->tabla[posicion].clave == clave) return posicion;
+		if(strcmp(hash->tabla[posicion].clave, clave)) return posicion;
 		posicion++;
 		if(posicion > hash->capacidad){
 			posicion = 0;
@@ -100,28 +100,30 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	if(hash->carga * 100 / hash->capacidad > FACTOR_AGRANDAMIENTO){
 		//VER COMO SACAR LOS BORRADOS
 		hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * 2 * hash->capacidad);
-		if(!aux) return 0;
+		if(!aux) return false;
 		hash->tabla = aux;
 		hash->capacidad *= 2;
 	}
 	unsigned int posicion;
 	posicion = buscar_clave(hash, clave);
 	if(!posicion){
- 		posicion = stringToHash(clave, hash->capacidad);
+ 		posicion = stringToHash(clave, (unsigned int)hash->capacidad);
  		while(hash->tabla[posicion].estado == OCUPADO){
 			if(hash->tabla[posicion].clave == clave){
 				hash->tabla[posicion].valor = dato;
-				return 1;
+				return true;
 			}
  			posicion++;
  		}
  	}
-	hash->tabla[posicion].clave = clave;
+	char* copia_clave = "";
+	strcpy(copia_clave,clave);
+	hash->tabla[posicion].clave = copia_clave;
 	hash->tabla[posicion].valor = dato;
 	hash->tabla[posicion].estado = OCUPADO;
 	hash->cantidad++;
 	hash->carga++;
-	return 1;
+	return true;
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
@@ -132,8 +134,8 @@ void *hash_borrar(hash_t *hash, const char *clave){
 		hash->tabla = aux;
 		hash->capacidad /= 2;
 	}
-	unsigned int posicion = buscar_clave(hash, clave);
-	if(!posicion) return NULL;
+	int posicion = buscar_clave(hash, clave);
+	if(posicion == -1) return NULL;
 	void* dato = hash->tabla[posicion].valor;
 	hash->tabla[posicion].estado = BORRADO;
 	hash->destruir_dato(hash->tabla[posicion].valor);
@@ -142,8 +144,8 @@ void *hash_borrar(hash_t *hash, const char *clave){
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave){
-	unsigned int posicion = buscar_clave(hash, clave);
-	if(!posicion) return NULL;
+	int posicion = buscar_clave(hash, clave);
+	if(posicion == -1) return NULL;
 	return hash->tabla[posicion].valor;
 }
 
@@ -157,11 +159,12 @@ size_t hash_cantidad(const hash_t *hash){
 
 void hash_destruir(hash_t *hash){
 	if(!hash) return;
-	unsigned int posicion = 0;
+	size_t posicion = 0;
 	while (posicion < hash->capacidad) {
 		if(hash->tabla[posicion].estado == OCUPADO){
 			hash->destruir_dato(hash->tabla[posicion].valor);
 		}
+		posicion++;
 	}
 	free(hash->tabla);
 	free(hash);
@@ -179,7 +182,10 @@ hash_iter_t *hash_iter_crear(const hash_t *hash){
 	iter->posicion = 0;
 	while(hash->tabla[iter->posicion].estado != OCUPADO){
 		iter->posicion++;
-		if(iter->posicion == iter->hash->capacidad) return NULL;
+		if(iter->posicion == iter->hash->capacidad){
+			iter->posicion = 0;
+			break;
+		}
 	}
 	return iter;
 }
