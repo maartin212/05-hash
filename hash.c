@@ -49,17 +49,25 @@ unsigned int stringToHash(const char *word, unsigned int hashTableSize){
 	return (hashAddress%hashTableSize);
 }
 
-// bool redimensionar(hash_t * hash,size_t nuevo_tam){
-// 	hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * (nuevo_tam*hash->capacidad));
-// 	if (!aux) return false;
-//
-// 	hash->tabla = aux;
-// 	for (int i = hash->capacidad; i < nuevo_tam*hash->capacidad ; i++){
-// 		hash->tabla[i].estado = VACIO;
-// 	}
-// 	hash->capacidad *= nuevo_tam;
-// 	return true;
-// }
+bool redimensionar(hash_t * hash, size_t nuevo_tam){
+	hash_campo_t* aux = hash->tabla;
+	hash->tabla = malloc(sizeof(hash_campo_t) * (nuevo_tam * hash->capacidad));
+	if (!aux) return false;
+
+	size_t capacidad_vieja = hash->capacidad;
+	hash->capacidad *= nuevo_tam;
+
+	for(int i = 0; i < capacidad_vieja; i++){
+		if(aux[i].estado == OCUPADO){
+			hash_guardar(hash, aux[i].clave, aux[i].valor);
+			hash->destruir_dato(aux[i].valor);
+		}
+	}
+	// for (int i = hash->capacidad; i < nuevo_tam*hash->capacidad ; i++){
+	// 	hash->tabla[i].estado = VACIO;
+	// }
+	return true;
+}
 
 int buscar_clave(const hash_t* hash, const char* clave){
 	unsigned int posicion = stringToHash(clave, (unsigned int)hash->capacidad);
@@ -90,29 +98,21 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 	hash->capacidad = TAM_INICIAL;
 	hash->carga = 0;
 	hash->destruir_dato = destruir_dato;
-	for (int i = 0 ; i < hash->capacidad ; i++){
-		hash->tabla[i].estado = VACIO;
-	}
+	// for (int i = 0 ; i < hash->capacidad ; i++){
+	// 	hash->tabla[i].estado = VACIO;
+	// }
 	return hash;
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	if(hash->carga * 100 / hash->capacidad > FACTOR_AGRANDAMIENTO){
-		//VER COMO SACAR LOS BORRADOS
-		hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) * 2 * hash->capacidad);
-		if(!aux) return false;
-		hash->tabla = aux;
-		hash->capacidad *= 2;
+		redimensionar(hash, 2);
 	}
 	unsigned int posicion;
 	posicion = buscar_clave(hash, clave);
 	if(!posicion){
  		posicion = stringToHash(clave, (unsigned int)hash->capacidad);
  		while(hash->tabla[posicion].estado == OCUPADO){
-			if(hash->tabla[posicion].clave == clave){
-				hash->tabla[posicion].valor = dato;
-				return true;
-			}
  			posicion++;
  		}
  	}
@@ -127,12 +127,12 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
-	if(hash->carga * 100 / hash->capacidad < FACTOR_REDUCCION){
+	bool reducir = hash->carga * 100 / hash->capacidad < FACTOR_REDUCCION &&
+								 hash->capacidad > TAM_INICIAL;
+
+	if(reducir){
 		//VER COMO SACAR LOS BORRADOS
-		hash_campo_t* aux = realloc(hash->tabla, sizeof(hash_campo_t) / 2 * hash->capacidad);
-		if(!aux) return NULL;
-		hash->tabla = aux;
-		hash->capacidad /= 2;
+		redimensionar(hash, 1/2);
 	}
 	int posicion = buscar_clave(hash, clave);
 	if(posicion == -1) return NULL;
@@ -194,7 +194,7 @@ bool hash_iter_avanzar(hash_iter_t *iter){
 	do{
 		iter->posicion++;
 	}while(iter->posicion < iter->hash->capacidad && iter->hash->tabla[iter->posicion].estado != OCUPADO);
-	
+
 	return true;
 }
 
