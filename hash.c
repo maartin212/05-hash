@@ -60,7 +60,7 @@ bool redimensionar(hash_t * hash, size_t nuevo_tam){
 	for(int i = 0; i < capacidad_vieja; i++){
 		if(aux[i].estado == OCUPADO){
 			hash_guardar(hash, aux[i].clave, aux[i].valor);
-			hash->destruir_dato(aux[i].valor);
+			// hash->destruir_dato(aux[i].valor);
 		}
 	}
 	// for (int i = hash->capacidad; i < nuevo_tam*hash->capacidad ; i++){
@@ -72,12 +72,14 @@ bool redimensionar(hash_t * hash, size_t nuevo_tam){
 int buscar_clave(const hash_t* hash, const char* clave){
 	unsigned int posicion = stringToHash(clave, (unsigned int)hash->capacidad);
 	while(hash->tabla[posicion].estado == OCUPADO){
+		printf("bool: %d\n",strcmp(hash->tabla[posicion].clave, clave));
 		if(strcmp(hash->tabla[posicion].clave, clave)) return posicion;
 		posicion++;
 		if(posicion > hash->capacidad){
 			posicion = 0;
 		}
 	}
+	printf("buscar: %d\n", posicion);
 	return -1;
 }
 
@@ -138,14 +140,16 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	if(posicion == -1) return NULL;
 	void* dato = hash->tabla[posicion].valor;
 	hash->tabla[posicion].estado = BORRADO;
-	hash->destruir_dato(hash->tabla[posicion].valor);
+	if(hash->destruir_dato){
+		hash->destruir_dato(hash->tabla[posicion].valor);
+	}
 	hash->cantidad--;
 	return dato;
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave){
 	int posicion = buscar_clave(hash, clave);
-	printf("%d\n", posicion);
+	// printf("%d\n", posicion);
 	if(posicion == -1) return NULL;
 	return hash->tabla[posicion].valor;
 }
