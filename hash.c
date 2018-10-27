@@ -72,7 +72,7 @@ bool redimensionar(hash_t * hash, size_t nuevo_tam){
 int buscar_clave(const hash_t* hash, const char* clave){
 	unsigned int posicion = stringToHash(clave, (unsigned int)hash->capacidad);
 	while(hash->tabla[posicion].estado == OCUPADO){
-		if(strcmp(hash->tabla[posicion].clave, clave)) return posicion;
+		if(strcmp(hash->tabla[posicion].clave, clave) == 0) return posicion;
 		posicion++;
 		if(posicion > hash->capacidad){
 			posicion = 0;
