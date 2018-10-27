@@ -56,6 +56,7 @@ bool redimensionar(hash_t * hash, size_t nuevo_tam){
 
 	size_t capacidad_vieja = hash->capacidad;
 	hash->capacidad *= nuevo_tam;
+	hash->carga = 0;
 	hash->cantidad = 0;
 	for(int i = 0; i < hash->capacidad; i++){
 		hash->tabla[i].estado = VACIO;
@@ -118,6 +119,9 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	posicion = stringToHash(clave, (unsigned int)hash->capacidad);
 	while(hash->tabla[posicion].estado == OCUPADO){
 		posicion++;
+		if(posicion == hash->capacidad){
+			posicion = 0;
+		}
 	}
 	char* copia_clave = malloc(sizeof(char) * strlen(clave));
 	strcpy(copia_clave,clave);
