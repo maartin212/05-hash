@@ -110,13 +110,13 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	}
 	unsigned int posicion;
 	posicion = buscar_clave(hash, clave);
-	if(!posicion){
+	if(posicion == -1){
  		posicion = stringToHash(clave, (unsigned int)hash->capacidad);
  		while(hash->tabla[posicion].estado == OCUPADO){
  			posicion++;
  		}
  	}
-	char* copia_clave = "";
+	char* copia_clave = malloc(sizeof(char) * strlen(clave));
 	strcpy(copia_clave,clave);
 	hash->tabla[posicion].clave = copia_clave;
 	hash->tabla[posicion].valor = dato;
@@ -145,6 +145,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 
 void *hash_obtener(const hash_t *hash, const char *clave){
 	int posicion = buscar_clave(hash, clave);
+	printf("%d\n", posicion);
 	if(posicion == -1) return NULL;
 	return hash->tabla[posicion].valor;
 }
