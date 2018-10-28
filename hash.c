@@ -64,7 +64,6 @@ bool redimensionar(hash_t * hash, size_t agrandar){
 	for(int i = 0; i < vieja_capacidad; i++){
 		if(aux[i].estado == OCUPADO){
 			hash_guardar(hash, aux[i].clave, aux[i].valor);
-			// hash->destruir_dato(aux[i].valor);
 		}
 	}
 	free(aux);
@@ -143,9 +142,10 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	if(posicion == -1) return NULL;
 	void* dato = hash->tabla[posicion].valor;
 	hash->tabla[posicion].estado = BORRADO;
-	// if(hash->destruir_dato){
-	// 	hash->destruir_dato(hash->tabla[posicion].valor);
-	// }
+	if(hash->destruir_dato){
+		hash->destruir_dato(hash->tabla[posicion].valor);
+	}
+	free(hash->tabla[posicion].clave);
 	hash->cantidad--;
 	return dato;
 }
@@ -168,8 +168,11 @@ void hash_destruir(hash_t *hash){
 	if(!hash) return;
 	size_t posicion = 0;
 	while (posicion < hash->capacidad) {
-		if(hash->tabla[posicion].estado == OCUPADO && hash->destruir_dato){
-			hash->destruir_dato(hash->tabla[posicion].valor);
+		if(hash->tabla[posicion].estado == OCUPADO){
+			if(hash->destruir_dato){
+				hash->destruir_dato(hash->tabla[posicion].valor);
+			}
+			free(hash->tabla[posicion].clave);
 		}
 		posicion++;
 	}
