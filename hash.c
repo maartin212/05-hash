@@ -26,7 +26,7 @@ struct hash{
 	size_t cantidad;
 	size_t capacidad;
 	size_t carga;
-	hash_campo_t *tabla; //hash->tabla[i].clave
+	hash_campo_t *tabla;
 	hash_destruir_dato_t destruir_dato;
 };
 
@@ -53,7 +53,7 @@ bool redimensionar(hash_t * hash, size_t agrandar){
 	hash_campo_t* aux = hash->tabla;
 	size_t nueva_capacidad = agrandar ? hash->capacidad * 2 : hash->capacidad / 2;
 	hash->tabla = malloc(sizeof(hash_campo_t) * (nueva_capacidad));
-	if (!aux) return false;
+	if (!hash->tabla) return false;
 	size_t vieja_capacidad = hash->capacidad;
 	hash->capacidad = nueva_capacidad;
 	hash->carga = 0;
@@ -64,7 +64,6 @@ bool redimensionar(hash_t * hash, size_t agrandar){
 	for(int i = 0; i < vieja_capacidad; i++){
 		if(aux[i].estado == OCUPADO){
 			hash_guardar(hash, aux[i].clave, aux[i].valor);
-			// hash->destruir_dato(aux[i].valor);
 		}
 	}
 	free(aux);
@@ -130,6 +129,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	hash->tabla[posicion].estado = OCUPADO;
 	hash->cantidad++;
 	hash->carga++;
+	
 	return true;
 }
 
@@ -170,6 +170,7 @@ void hash_destruir(hash_t *hash){
 	while (posicion < hash->capacidad) {
 		if(hash->tabla[posicion].estado == OCUPADO && hash->destruir_dato){
 			hash->destruir_dato(hash->tabla[posicion].valor);
+			hash->destruir_dato(hash->tabla[posicion].clave);
 		}
 		posicion++;
 	}
