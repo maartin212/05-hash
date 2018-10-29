@@ -41,15 +41,16 @@ struct hash_iter{
 
 /* ******************************************************************
 *                    FUNCION DE HASH
-https://stackoverflow.com/questions/14409466/simple-hash-functions
+https://stackoverflow.com/questions/20462826/hash-function-for-strings-in-c
 * *****************************************************************/
 
-size_t stringToHash(const char *word, size_t hashTableSize){
-	size_t counter, hashAddress = 0;
-	for (counter = 0; word[counter]!='\0'; counter++){
-  		hashAddress = hashAddress*word[counter] + word[counter] + counter;
-	}
-	return (hashAddress%hashTableSize);
+size_t stringToHash (const char* word,size_t capacidad){
+    size_t hash = 0;
+    for (int i = 0 ; word[i] != '\0' ; i++)
+    {
+        hash = 31*hash + (size_t)word[i];
+    }
+    return hash % capacidad;
 }
 
 /* ******************************************************************
