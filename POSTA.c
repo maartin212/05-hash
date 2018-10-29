@@ -1,7 +1,10 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "hash.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 
 #define TAM_INICIAL 30
 #define FACTOR_AGRANDAMIENTO 70
@@ -41,8 +44,8 @@ struct hash_iter{
 https://stackoverflow.com/questions/14409466/simple-hash-functions
 * *****************************************************************/
 
-unsigned int stringToHash(const char *word, unsigned int hashTableSize){
-	unsigned int counter, hashAddress = 0;
+size_t stringToHash(const char *word, size_t hashTableSize){
+	size_t counter, hashAddress = 0;
 	for (counter = 0; word[counter]!='\0'; counter++){
   		hashAddress = hashAddress*word[counter] + word[counter] + counter;
 	}
@@ -54,8 +57,11 @@ unsigned int stringToHash(const char *word, unsigned int hashTableSize){
 * *****************************************************************/
 
 
-bool redimensionar(hash_t * hash, float variacion){
-	size_t nueva_capacidad = hash->capacidad * variacion;
+bool redimensionar(hash_t * hash, size_t variacion,bool agrandar){
+	size_t nueva_capacidad;
+	if (agrandar) nueva_capacidad = hash->capacidad * variacion;
+	else nueva_capacidad = hash->capacidad / variacion;
+	
 	hash_campo_t * nueva_tabla = malloc(sizeof(hash_campo_t) * nueva_capacidad);
 	if(nueva_tabla == NULL) return false;
 
@@ -114,7 +120,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	if ( (hash->carga * 100 / hash->capacidad) > FACTOR_AGRANDAMIENTO){
-		if(!redimensionar(hash,2)) return false;
+		if(!redimensionar(hash,2,true)) return false;
 	}
 	size_t posicion = stringToHash(clave,hash->capacidad);
 
@@ -152,7 +158,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 
 void *hash_borrar(hash_t *hash, const char *clave){
 	if (hash->carga * 100/ hash->capacidad < FACTOR_REDUCCION && hash->capacidad > TAM_INICIAL){
-		if(!redimensionar(hash,0.5)) return NULL;
+		if(!redimensionar(hash,2,false)) return NULL;
 	}
 	if (! hash_pertenece(hash,clave)) return NULL;
 
