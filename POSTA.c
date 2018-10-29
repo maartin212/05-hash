@@ -54,7 +54,7 @@ unsigned int stringToHash(const char *word, unsigned int hashTableSize){
 * *****************************************************************/
 
 
-bool redimensionar(hash_t * hash, size_t variacion){
+bool redimensionar(hash_t * hash, float variacion){
 	size_t nueva_capacidad = hash->capacidad * variacion;
 	hash_campo_t * nueva_tabla = malloc(sizeof(hash_campo_t) * nueva_capacidad);
 	if(nueva_tabla == NULL) return false;
