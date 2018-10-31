@@ -44,13 +44,15 @@ struct hash_iter{
 https://stackoverflow.com/questions/20462826/hash-function-for-strings-in-c
 * *****************************************************************/
 
-size_t stringToHash (const char* word,size_t capacidad){
-    size_t hash = 0;
-    for (int i = 0 ; word[i] != '\0' ; i++)
-    {
-        hash = 31*hash + (size_t)word[i];
-    }
-    return hash % capacidad;
+size_t stringToHash (const char* word, size_t capacidad){
+		size_t result = 5381;
+		unsigned char *p;
+		p = (unsigned char *) word;
+		while (*p != '\0') {
+			result = (result << 5) + result + *p;
+			++p;
+		}
+		return result%capacidad;
 }
 
 /* ******************************************************************
