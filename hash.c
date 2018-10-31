@@ -69,20 +69,13 @@ bool redimensionar(hash_t * hash, size_t variacion,bool agrandar){
 	}
 
 	for (int i = 0 ; i < hash->capacidad ; i ++){
-		if (hash->tabla[i].estado == BORRADO){
-			free(hash->tabla[i].clave);
-			if(hash->destruir_dato) hash->destruir_dato(hash->tabla[i].valor);
-		}
-
+		if (hash->tabla[i].estado == BORRADO) free(hash->tabla[i].clave);
 		else if (hash->tabla[i].estado == OCUPADO){
-
 			size_t posicion = stringToHash(hash->tabla[i].clave,nueva_capacidad);
 			while(nueva_tabla[posicion].estado == OCUPADO){
 				posicion++;
-
 				if(posicion == nueva_capacidad) posicion = 0;
 			}
-
 			nueva_tabla[posicion].clave = hash->tabla[i].clave;
 			nueva_tabla[posicion].valor = hash->tabla[i].valor;
 			nueva_tabla[posicion].estado = OCUPADO;
@@ -212,7 +205,7 @@ void hash_destruir(hash_t *hash){
 	for (int i  = 0 ; i < hash->capacidad ; i++){
 		if (hash->tabla[i].estado != VACIO){
 			free(hash->tabla[i].clave);
-			if(hash->destruir_dato) hash->destruir_dato(hash->tabla[i].valor);
+			if(hash->destruir_dato && hash->tabla[i].estado == OCUPADO) hash->destruir_dato(hash->tabla[i].valor);
 		}
 	}
 	free(hash->tabla);
