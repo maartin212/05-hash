@@ -72,7 +72,7 @@ hash_campo_t* crear_tabla(size_t capacidad){
 size_t buscar_posicion_clave(const hash_t* hash, const char* clave){
 	size_t posicion = stringToHash(clave, (unsigned int)hash->capacidad);
 	while(hash->tabla[posicion].estado != VACIO){
-		if((strcmp(hash->tabla[posicion].clave, clave) == 0) && hash->tabla[posicion].estado == OCUPADO){
+		if(hash->tabla[posicion].estado == OCUPADO && (strcmp(hash->tabla[posicion].clave, clave) == 0)){
 			return posicion;
 		}
 		posicion++;
